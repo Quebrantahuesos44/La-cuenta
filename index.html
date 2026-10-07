@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="La Cuenta">
+  <meta name="theme-color" content="#111827">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <title>La Cuenta</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f3f4f6;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+      padding: max(18px, env(safe-area-inset-top)) 14px max(28px, env(safe-area-inset-bottom));
+    }
+
+    .app {
+      max-width: 430px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 30px;
+      margin: 6px 0 18px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.07);
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      margin-top: 10px;
+      margin-bottom: 6px;
+    }
+
+    select, input, button {
+      font: inherit;
+    }
+
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: #111827;
+      font-size: 17px;
+    }
+
+    button {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 12px;
+      margin-top: 10px;
+      background: #111827;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.red {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .balance-list {
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 54px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .balance-name {
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .balance-money {
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .negative {
+      color: #dc2626;
+    }
+
+    #editor {
+      display: none;
+      margin-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 12px;
+    }
+
+    #editor.show {
+      display: block;
+    }
+
+    .edit-head,
+    .edit-row {
+      display: grid;
+      grid-template-columns: 1.25fr .85fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .edit-head {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 800;
+      padding: 0 4px 6px;
+    }
+
+    .edit-row {
+      margin-bottom: 8px;
+    }
+
+    .edit-row input {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .help {
+      color: #6b7280;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <h1>💰 La Cuenta</h1>
+
+  <div class="card">
+    <label for="player">Jugador</label>
+    <select id="player">
+      <option value="0">LALI</option>
+      <option value="1">PABLO</option>
+      <option value="2">ESTER</option>
+      <option value="3">RODRI</option>
+      <option value="4">DANI</option>
+    </select>
+
+    <label for="amount">Gasto (€)</label>
+    <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Ej: 120">
+
+    <button type="button" onclick="restarGasto()">Restar gasto</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Dinero de cada uno</div>
+
+    <!-- Esta lista ya está escrita en el HTML.
+         Aunque fallase JavaScript, los nombres y 1.100 € se ven. -->
+    <div id="balanceList" class="balance-list">
+      <div class="balance-row"><span class="balance-name">LALI</span><span class="balance-money">1.100 €</span></div>
+      <div class="balance-row"><span class="balance-name">PABLO</span><span class="balance-money">1.100 €</span></div>
+      <div class="balance-row"><span class="balance-name">ESTER</span><span class="balance-money">1.100 €</span></div>
+      <div class="balance-row"><span class="balance-name">RODRI</span><span class="balance-money">1.100 €</span></div>
+      <div class="balance-row"><span class="balance-name">DANI</span><span class="balance-money">1.100 €</span></div>
+    </div>
+
+    <button type="button" class="secondary" onclick="abrirEditor()">✏️ Editar nombres y dinero</button>
+
+    <div id="editor">
+      <div class="edit-head">
+        <div>Nombre</div>
+        <div>Dinero (€)</div>
+      </div>
+
+      <div class="edit-row">
+        <input id="name0" type="text" value="LALI">
+        <input id="money0" type="number" inputmode="decimal" step="0.01" value="1100">
+      </div>
+      <div class="edit-row">
+        <input id="name1" type="text" value="PABLO">
+        <input id="money1" type="number" inputmode="decimal" step="0.01" value="1100">
+      </div>
+      <div class="edit-row">
+        <input id="name2" type="text" value="ESTER">
+        <input id="money2" type="number" inputmode="decimal" step="0.01" value="1100">
+      </div>
+      <div class="edit-row">
+        <input id="name3" type="text" value="RODRI">
+        <input id="money3" type="number" inputmode="decimal" step="0.01" value="1100">
+      </div>
+      <div class="edit-row">
+        <input id="name4" type="text" value="DANI">
+        <input id="money4" type="number" inputmode="decimal" step="0.01" value="1100">
+      </div>
+
+      <button type="button" onclick="guardarEdicion()">Guardar cambios</button>
+      <button type="button" class="secondary" onclick="cerrarEditor()">Cancelar</button>
+      <button type="button" class="red" onclick="restablecer()">Restablecer los 5 a 1.100 €</button>
+    </div>
+
+    <div class="help">Los nombres y saldos quedan guardados en este iPhone.</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = "laCuentaV3_20261007";
+
+  var defaults = [
+    { name: "LALI",  money: 1100 },
+    { name: "PABLO", money: 1100 },
+    { name: "ESTER", money: 1100 },
+    { name: "RODRI", money: 1100 },
+    { name: "DANI",  money: 1100 }
+  ];
+
+  window.players = cargar();
+
+  function copiarDefaults() {
+    var arr = [];
+    var i;
+    for (i = 0; i < defaults.length; i++) {
+      arr.push({ name: defaults[i].name, money: defaults[i].money });
+    }
+    return arr;
+  }
+
+  function cargar() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return copiarDefaults();
+
+      var parsed = JSON.parse(raw);
+      if (!parsed || !parsed.length || parsed.length !== 5) {
+        return copiarDefaults();
+      }
+
+      return parsed;
+    } catch (e) {
+      return copiarDefaults();
+    }
+  }
+
+  function guardar() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(window.players));
+    } catch (e) {}
+  }
+
+  function dineroBonito(numero) {
+    var n = Number(numero);
+    if (!isFinite(n)) n = 0;
+
+    return n.toLocaleString("es-ES", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }) + " €";
+  }
+
+  function escapar(texto) {
+    var div = document.createElement("div");
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  function pintar() {
+    var list = document.getElementById("balanceList");
+    var select = document.getElementById("player");
+    var html = "";
+    var options = "";
+    var i;
+
+    for (i = 0; i < window.players.length; i++) {
+      var p = window.players[i];
+      var negative = Number(p.money) <= 0 ? " negative" : "";
+
+      html += '<div class="balance-row">' +
+                '<span class="balance-name">' + escapar(p.name) + '</span>' +
+                '<span class="balance-money' + negative + '">' + dineroBonito(p.money) + '</span>' +
+              '</div>';
+
+      options += '<option value="' + i + '">' + escapar(p.name) + '</option>';
+    }
+
+    list.innerHTML = html;
+    select.innerHTML = options;
+  }
+
+  function cargarEditor() {
+    var i;
+    for (i = 0; i < 5; i++) {
+      document.getElementById("name" + i).value = window.players[i].name;
+      document.getElementById("money" + i).value = window.players[i].money;
+    }
+  }
+
+  window.restarGasto = function () {
+    var select = document.getElementById("player");
+    var amountInput = document.getElementById("amount");
+    var index = parseInt(select.value, 10);
+    var amount = parseFloat(String(amountInput.value).replace(",", "."));
+
+    if (!isFinite(amount) || amount <= 0) {
+      alert("Introduce un gasto válido");
+      return;
+    }
+
+    window.players[index].money =
+      Math.round((Number(window.players[index].money) - amount) * 100) / 100;
+
+    guardar();
+    pintar();
+    amountInput.value = "";
+  };
+
+  window.abrirEditor = function () {
+    cargarEditor();
+    document.getElementById("editor").className = "show";
+  };
+
+  window.cerrarEditor = function () {
+    document.getElementById("editor").className = "";
+  };
+
+  window.guardarEdicion = function () {
+    var nuevos = [];
+    var i;
+
+    for (i = 0; i < 5; i++) {
+      var nombre = document.getElementById("name" + i).value.trim();
+      var dinero = parseFloat(String(document.getElementById("money" + i).value).replace(",", "."));
+
+      if (!nombre) {
+        alert("El jugador " + (i + 1) + " necesita un nombre.");
+        return;
+      }
+
+      if (!isFinite(dinero)) {
+        alert("El dinero de " + nombre + " no es válido.");
+        return;
+      }
+
+      nuevos.push({
+        name: nombre,
+        money: Math.round(dinero * 100) / 100
+      });
+    }
+
+    window.players = nuevos;
+    guardar();
+    pintar();
+    window.cerrarEditor();
+  };
+
+  window.restablecer = function () {
+    if (!confirm("¿Volver a LALI, PABLO, ESTER, RODRI y DANI con 1.100 € cada uno?")) {
+      return;
+    }
+
+    window.players = copiarDefaults();
+    guardar();
+    pintar();
+    cargarEditor();
+  };
+
+  pintar();
+})();
+</script>
+</body>
+</html>
